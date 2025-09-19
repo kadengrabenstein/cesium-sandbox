@@ -11,12 +11,12 @@ export const enableZoomBox = (viewer: Viewer) => {
     let mouseDown = false;
     const camera = viewer.camera;
 
-    const getSelectorLocation = new CallbackProperty(function getSelectorLocation(_time, result) {
+    const getZoomBoxLocation = new CallbackProperty((_time, result) => {
         return Rectangle.clone(rectangleSelector, result);
     }, false);
 
     // Start drawing
-    screenSpaceEventHandler.setInputAction(function startClickShift() {
+    screenSpaceEventHandler.setInputAction(() => {
     mouseDown = true;
     firstPointSet = false;
 
@@ -25,12 +25,12 @@ export const enableZoomBox = (viewer: Viewer) => {
     controller.enableInputs = false;
 
     // Bind rectangle to live-updating callback
-    zoomBox.rectangle.coordinates = getSelectorLocation;
+    zoomBox.rectangle.coordinates = getZoomBoxLocation;
     viewer.scene.requestRender();
     }, ScreenSpaceEventType.LEFT_DOWN, KeyboardEventModifier.ALT);
 
     //Draw the selector while the user drags the mouse while holding shift
-    screenSpaceEventHandler.setInputAction(function drawSelector(movement) {
+    screenSpaceEventHandler.setInputAction((movement) => {
     if (!mouseDown) return;
 
     const cartesian = camera.pickEllipsoid(movement.endPosition, viewer.scene.globe.ellipsoid);
@@ -69,7 +69,7 @@ export const enableZoomBox = (viewer: Viewer) => {
         viewer.camera.flyTo({
         destination: rectangleSelector,
         duration: 0.5,
-        complete: function () {
+        complete: () => {
             zoomBox.show = false;
         }
         });
@@ -82,8 +82,7 @@ export const enableZoomBox = (viewer: Viewer) => {
     screenSpaceEventHandler.setInputAction(finalizeRectangle, ScreenSpaceEventType.LEFT_UP, KeyboardEventModifier.ALT);
 
     // If alt is released before mouse up
-    screenSpaceEventHandler.setInputAction(
-    function () {
+    screenSpaceEventHandler.setInputAction(() => {
         if (mouseDown) {
         finalizeRectangle();
         }
@@ -92,7 +91,7 @@ export const enableZoomBox = (viewer: Viewer) => {
     );
 
     //Hide the selector by clicking anywhere
-    screenSpaceEventHandler.setInputAction(function hideSelector() {
+    screenSpaceEventHandler.setInputAction(() => {
         zoomBox.show = false;
         mouseDown = false;
         firstPointSet = false;
@@ -102,7 +101,7 @@ export const enableZoomBox = (viewer: Viewer) => {
     zoomBox = viewer.entities.add({
         show: false,
         rectangle: {
-            coordinates: getSelectorLocation,
+            coordinates: getZoomBoxLocation,
             material: Color.BLUE.withAlpha(0.5)
         }
     });
